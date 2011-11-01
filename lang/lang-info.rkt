@@ -7,5 +7,7 @@
     (case key
       ((configure-runtime)
        '(#(calc/lang/configure-runtime configure #f)))
+      ((drracket:submit-predicate)
+       (dynamic-require 'calc/tool/submit 'repl-submit?))
       (else
        default))))
