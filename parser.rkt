@@ -18,6 +18,33 @@
              (- (position-offset end-pos)
                 (position-offset start-pos)))))
 
+(define-syntax (build-so stx)
+  (syntax-case stx ()
+    ((_ value start end)
+     (with-syntax ((start-pos (datum->syntax
+                               stx
+                               (string->symbol 
+                                (format "$~a-start-pos"
+                                        (syntax->datum #'start)))))
+                   (end-pos (datum->syntax
+                             stx
+                             (string->symbol 
+                              (format "$~a-end-pos"
+                                      (syntax->datum #'end)))))
+                   (source (datum->syntax
+                            stx
+                            'source-name)))
+       (syntax
+        (datum->syntax
+         #f
+         value
+         (list source 
+               (position-line start-pos)
+               (position-col start-pos)
+               (position-offset start-pos)
+               (- (position-offset end-pos)
+                  (position-offset start-pos)))))))))
+
 (define (calc-parser source-name)
   (parser
    (src-pos)
@@ -28,7 +55,7 @@
    
    (grammar
     (start
-     ((statements) $1))
+     ((statements)(build-so $1 1 1)))
     
     (statements
      (() '())
@@ -43,29 +70,29 @@
     
     (expression
      ((term) $1)
-     ((expression PLUS term) (list 'plus  $1 $3))
-     ((expression MINUS term) (list 'minus $1 $3)))
+     ((expression PLUS term) (build-so (list 'plus  $1 $3) 1 3))
+     ((expression MINUS term) (build-so (list 'minus $1 $3) 1 3)))
     
     (term
      ((factor) $1)
-     ((term MULTIPLY factor) (list 'multiply $1 $3))
-     ((term DIVIDE factor) (list 'divide $1 $3)))
+     ((term MULTIPLY factor) (build-so (list 'multiply $1 $3) 1 3))
+     ((term DIVIDE factor) (build-so (list 'divide $1 $3) 1 3)))
     
     (factor
      ((primary-expression) $1)
-     ((MINUS primary-expression) (list 'negate $2))
+     ((MINUS primary-expression) (build-so (list 'negate $2) 1 2))
      ((PLUS primary-expression) $2))
     
     (primary-expression
      ((constant) $1)
-     ((IDENTIFIER) (list 'value-of $1))
-     ((LEFT-PAREN expression RIGHT-PAREN) $2))
+     ((IDENTIFIER) (build-so (list 'value-of $1) 1 1))
+     ((LEFT-PAREN expression RIGHT-PAREN) (build-so $2 1 3)))
     
     (assignment
-     ((IDENTIFIER ASSIGN expression) (list 'assign $1 $3)))
+     ((IDENTIFIER ASSIGN expression) (build-so (list 'assign $1 $3) 1 3)))
     
     (printing
-     ((PRINT expression) (list 'print $2))))))
+     ((PRINT expression) (build-so (list 'print $2) 1 2))))))
 
 (define (parse-calc-port port file)
   (port-count-lines! port)
