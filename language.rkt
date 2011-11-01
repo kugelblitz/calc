@@ -2,7 +2,11 @@
 
 (provide
  #%module-begin #%datum
+ (rename-out (top-interaction #%top-interaction))
  assign plus minus divide multiply negate value-of print)
+
+(define-syntax-rule (top-interaction body ...)
+    (begin body ...))
 
 (define current-env (make-hash))
 

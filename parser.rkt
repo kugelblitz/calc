@@ -5,7 +5,8 @@
          calc/lexer)
 
 (provide calc-read-syntax
-         calc-read)
+         calc-read
+         parse-calc-port)
 
 (define (on-error source-name)
   (lambda (tok-ok? tok-name tok-value start-pos end-pos)
