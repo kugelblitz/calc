@@ -17,6 +17,19 @@
 (define-empty-tokens op-tokens
   (EOF ASSIGN PLUS MINUS MULTIPLY DIVIDE LEFT-PAREN RIGHT-PAREN PRINT))
 
+(define-for-syntax (string->ci-pattern s)
+  (cons ':: (map (lambda (c)
+                   (list ':or (char-downcase c) (char-upcase c)))
+                 (string->list s))))
+
+(define-lex-trans lex-ci
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ id)
+       (with-syntax ((result (string->ci-pattern
+                              (syntax->datum #'id))))
+         #'result)))))
+
 (define calc-lexer
   (lexer-src-pos
    ((:+ lex:whitespace) (return-without-pos (calc-lexer input-port)))
@@ -27,7 +40,7 @@
    ("/" (token-DIVIDE))
    ("(" (token-LEFT-PAREN))
    (")" (token-RIGHT-PAREN))
-   ("print" (token-PRINT))
+   ((lex-ci "print") (token-PRINT))
    ((:: lex:letter (:* (:or lex:letter lex:digit)))
     (token-IDENTIFIER (string->symbol lexeme)))
    ((:: (:? #\-) (:+ lex:digit) (:? (:: #\. (:* lex:digit))))
