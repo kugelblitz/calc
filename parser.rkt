@@ -2,7 +2,8 @@
 
 (require parser-tools/yacc
          syntax/readerr
-         calc/lexer)
+         calc/lexer
+         calc/compiler)
 
 (provide calc-read-syntax
          calc-read
@@ -106,4 +107,5 @@
    (calc-read-syntax #f in)))
 
 (define (calc-read-syntax source-name input-port)
-  (parse-calc-port input-port source-name))
+  (compile-program
+   (parse-calc-port input-port source-name)))
