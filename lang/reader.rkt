@@ -1,5 +1,5 @@
 (module reader syntax/module-reader
-  #:language 'racket
+  #:language 'calc/language
   #:read calc-read
   #:read-syntax calc-read-syntax
   #:whole-body-readers? #t
